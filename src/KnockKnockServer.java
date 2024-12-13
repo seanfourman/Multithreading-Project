@@ -2,26 +2,50 @@ import java.net.*;
 import java.io.*;
 
 public class KnockKnockServer {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         ServerSocket serverSocket = null;
         try {
             // create a server socket listening on port 1234
             serverSocket = new ServerSocket(1234);
+            System.out.println("Server is listening on port 1234...");
+            
+            while (true) {
+                try {
+                    // accept a client connection
+                    Socket clientSocket = serverSocket.accept();
+                    // create a new thread to handle the client connection
+                    new ClientHandler(clientSocket).start();
+                } catch (IOException e) {
+                    System.err.println("Accept failed from client socket.");
+                }
+            }
         } catch (IOException e) {
             System.err.println("Could not listen on port: 1234.");
-            System.exit(1);
-        }
-
-        while (true) {
-            Socket clientSocket = null;
-            try {
-                // accept a client connection
-                clientSocket = serverSocket.accept();
-            } catch (IOException e) {
-                System.err.println("Accept failed from client socket.");
-                System.exit(1);
+            e.printStackTrace();
+        } finally {
+            if (serverSocket != null && !serverSocket.isClosed()) {
+                try {
+                    serverSocket.close();
+                    System.out.println("Server socket closed.");
+                } catch (IOException e) {
+                    System.err.println("Error while closing the server socket.");
+                    e.printStackTrace();
+                }
             }
+        }
+    }
+}
 
+class ClientHandler extends Thread {
+    private Socket clientSocket;
+
+    public ClientHandler(Socket socket) {
+        this.clientSocket = socket;
+    }
+
+    // how each thread will handle each client connection
+    public void run() {
+        try {
             // create output and input streams for the client connection
             PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
             BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -44,9 +68,8 @@ public class KnockKnockServer {
             out.close();
             in.close();
             clientSocket.close();
-
-            // close the server socket
-            serverSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 }
