@@ -53,7 +53,7 @@ public class ClientHandler extends Thread {
                 }
                 outputLine = protocol.processInput(inputLine);
                 out.println(outputLine);
-                if ("Bye.".equals(outputLine) || "Goodbye!".equals(outputLine)) { // NEED TO CHANGE THIS AT THE END
+                if ("Bye.".equals(outputLine) || "Disconnecting...".equals(outputLine)) {
                     break; // exit if the protocol indicates the end of conversation
                 }
             }

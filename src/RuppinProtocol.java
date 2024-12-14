@@ -1,19 +1,24 @@
 import java.util.ArrayList;
 
 public class RuppinProtocol implements ProtocolInterface {
+    // DEFAULT PROTOCOL STATES
     private static final int WAITING = 0;
     private static final int ASK_USER_TYPE = 1;
+    // NEW USER STATES
     private static final int ASK_USERNAME_NEW = 2;
     private static final int ASK_PASSWORD_NEW = 3;
-    private static final int NEW_USER_CREATED = 4;
-    private static final int ASK_USERNAME_EXISTING = 5;
-    private static final int ASK_PASSWORD_EXISTING = 6;
-    private static final int USER_LOGGED_IN = 7;
+    private static final int ASK_IS_STUDENT = 4;
+    private static final int ASK_IS_HAPPY = 5;
+    // EXISTING USER STATES
+    private static final int ASK_USERNAME_EXISTING = 6;
+    private static final int ASK_PASSWORD_EXISTING = 7;
 
     private int state = WAITING;
     private ArrayList<Client> users;
     private String tempUsername;
     private String tempPassword;
+    private boolean tempIsStudent;
+    private boolean tempIsHappy;
 
     public RuppinProtocol(ArrayList<Client> users) {
         this.users = users;
@@ -39,7 +44,7 @@ public class RuppinProtocol implements ProtocolInterface {
                     theOutput = "Invalid Input. New User? [Y/N]";
                 }
                 break;
-            
+
             // TYPE -> NEW USER
             case ASK_USERNAME_NEW:
                 tempUsername = theInput.trim();
@@ -54,26 +59,45 @@ public class RuppinProtocol implements ProtocolInterface {
             case ASK_PASSWORD_NEW:
                 tempPassword = theInput.trim();
                 if (isValidPassword(tempPassword)) {
-                    try {
-                        // create new user and add to users list
-                        Client newUser = new Client(tempUsername, tempPassword, false, false);
-                        users.add(newUser);
-                        theOutput = "User created successfully! Welcome, " + tempUsername;
-                        state = NEW_USER_CREATED;
-                    } catch (IllegalArgumentException e) {
-                        theOutput = "Error creating user: " + e.getMessage() + " Please try again.";
-                        state = ASK_PASSWORD_NEW;
-                    }
+                    theOutput = "Are you a student in Ruppin? [Y/N]";
+                    state = ASK_IS_STUDENT;
                 } else {
                     theOutput = "Password must be at least 9 characters long and include at least one uppercase letter, one lowercase letter, and one number. Please enter a valid password:";
                     state = ASK_PASSWORD_NEW;
                 }
                 break;
 
-            case NEW_USER_CREATED:
-                theOutput = "You are now logged in. Thank you!";
-                // Optionally reset the state to WAITING or end the session
-                state = WAITING;
+            case ASK_IS_STUDENT:
+                if ("Y".equalsIgnoreCase(theInput)) {
+                    tempIsStudent = true;
+                } else if ("N".equalsIgnoreCase(theInput)) {
+                    tempIsStudent = false;
+                } else {
+                    theOutput = "Invalid input. Are you a student in Ruppin? [Y/N]";
+                    break;
+                }
+                theOutput = "Are you happy? [Y/N]";
+                state = ASK_IS_HAPPY;
+                break;
+
+            case ASK_IS_HAPPY:
+                if ("Y".equalsIgnoreCase(theInput)) {
+                    tempIsHappy = true;
+                } else if ("N".equalsIgnoreCase(theInput)) {
+                    tempIsHappy = false;
+                } else {
+                    theOutput = "Invalid input. Are you happy? [Y/N]";
+                    break;
+                }
+                try {
+                    // create new user and add to users list
+                    Client newUser = new Client(tempUsername, tempPassword, tempIsStudent, tempIsHappy);
+                    users.add(newUser);
+                    theOutput = "Disconnecting..."; // message to indicate disconnection from server
+                } catch (IllegalArgumentException e) {
+                    theOutput = "Error creating user: " + e.getMessage() + " Please try again.";
+                    state = ASK_USERNAME_NEW;
+                }
                 break;
 
             // TYPE -> EXISTING USER
@@ -90,17 +114,10 @@ public class RuppinProtocol implements ProtocolInterface {
             case ASK_PASSWORD_EXISTING:
                 String password = theInput.trim();
                 if (validateUser(tempUsername, password)) {
-                    theOutput = "Login successful! Welcome back, " + tempUsername;
-                    state = USER_LOGGED_IN;
+                    theOutput = "Login successful. Welcome back, " + tempUsername + "! ";
                 } else {
                     theOutput = "Incorrect password. Please try again:";
                 }
-                break;
-
-            case USER_LOGGED_IN:
-                theOutput = "You are now logged in. Thank you!";
-                // Optionally reset the state to WAITING or end the session
-                state = WAITING;
                 break;
 
             default:
@@ -139,5 +156,14 @@ public class RuppinProtocol implements ProtocolInterface {
             }
         }
         return false;
+    }
+
+    private Client getClientByUsername(String username) {
+        for (Client user : users) {
+            if (user.checkUser().equalsIgnoreCase(username)) {
+                return user;
+            }
+        }
+        return null;
     }
 }
