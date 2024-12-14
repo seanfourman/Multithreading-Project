@@ -30,7 +30,7 @@ public class RuppinClient {
         // read data from the server and send user input back to the server
         while ((fromServer = in.readLine()) != null) {
             System.out.println("[SERVER] " + fromServer);
-            if (fromServer.equals("Bye."))
+            if (fromServer.equals("Bye.") || fromServer.equals("Disconnecting..."))
                 break;
 
             fromUser = stdIn.readLine();

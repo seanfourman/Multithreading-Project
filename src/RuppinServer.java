@@ -16,7 +16,7 @@ public class RuppinServer {
             
             while (true) {
                 try {
-                    // accept a client connection
+                    // accept a client connection and create a new socket for the client
                     Socket clientSocket = serverSocket.accept();
 
                     // create a new thread to handle the client connection

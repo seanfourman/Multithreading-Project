@@ -42,7 +42,7 @@ public class ClientHandler extends Thread {
                 return;
             }
 
-            // get the initial output from the protocol
+            // get the initial output from the protocol -> start the conversation
             outputLine = protocol.processInput(null);
             out.println(outputLine);
 
@@ -53,9 +53,6 @@ public class ClientHandler extends Thread {
                 }
                 outputLine = protocol.processInput(inputLine);
                 out.println(outputLine);
-                if ("Bye.".equals(outputLine) || "Disconnecting...".equals(outputLine)) {
-                    break; // exit if the protocol indicates the end of conversation
-                }
             }
 
             out.close();

@@ -4,24 +4,28 @@ public class RuppinProtocol implements ProtocolInterface {
     // DEFAULT PROTOCOL STATES
     private static final int WAITING = 0;
     private static final int ASK_USER_TYPE = 1;
-    // NEW USER STATES
+    // NEW CLIENT STATES
     private static final int ASK_USERNAME_NEW = 2;
     private static final int ASK_PASSWORD_NEW = 3;
     private static final int ASK_IS_STUDENT = 4;
     private static final int ASK_IS_HAPPY = 5;
-    // EXISTING USER STATES
+    // EXISTING CLIENT STATES
     private static final int ASK_USERNAME_EXISTING = 6;
     private static final int ASK_PASSWORD_EXISTING = 7;
+    private static final int ASK_IF_UPDATE = 8;
+    private static final int ASK_PASSWORD_UPDATE = 9;
+    private static final int ASK_PASSWORD_UPDATE_NEW = 10;
 
     private int state = WAITING;
-    private ArrayList<Client> users;
+    private ArrayList<Client> clientState;
     private String tempUsername;
     private String tempPassword;
     private boolean tempIsStudent;
     private boolean tempIsHappy;
+    private boolean isUpdate;
 
-    public RuppinProtocol(ArrayList<Client> users) {
-        this.users = users;
+    public RuppinProtocol(ArrayList<Client> clientState) {
+        this.clientState = clientState;
     }
 
     public String processInput(String theInput) {
@@ -37,11 +41,12 @@ public class RuppinProtocol implements ProtocolInterface {
                 if ("Y".equalsIgnoreCase(theInput)) {
                     theOutput = "Enter new username:";
                     state = ASK_USERNAME_NEW;
+                    isUpdate = false;
                 } else if ("N".equalsIgnoreCase(theInput)) {
                     theOutput = "Enter your username:";
                     state = ASK_USERNAME_EXISTING;
                 } else {
-                    theOutput = "Invalid Input. New User? [Y/N]";
+                    theOutput = "Invalid input. New User? [Y/N]";
                 }
                 break;
 
@@ -58,13 +63,8 @@ public class RuppinProtocol implements ProtocolInterface {
 
             case ASK_PASSWORD_NEW:
                 tempPassword = theInput.trim();
-                if (isValidPassword(tempPassword)) {
-                    theOutput = "Are you a student in Ruppin? [Y/N]";
-                    state = ASK_IS_STUDENT;
-                } else {
-                    theOutput = "Password must be at least 9 characters long and include at least one uppercase letter, one lowercase letter, and one number. Please enter a valid password:";
-                    state = ASK_PASSWORD_NEW;
-                }
+                theOutput = "Are you a student in Ruppin? [Y/N]";
+                state = ASK_IS_STUDENT;
                 break;
 
             case ASK_IS_STUDENT:
@@ -90,12 +90,21 @@ public class RuppinProtocol implements ProtocolInterface {
                     break;
                 }
                 try {
-                    // create new user and add to users list
-                    Client newUser = new Client(tempUsername, tempPassword, tempIsStudent, tempIsHappy);
-                    users.add(newUser);
-                    theOutput = "Disconnecting..."; // message to indicate disconnection from server
+                    if (isUpdate) {
+                        Client client = getClientByUsername(tempUsername);
+                        client.setStudent(tempIsStudent);
+                        client.setHappy(tempIsHappy);
+                        theOutput = "Do you want to change your password? [Y/N]";
+                        state = ASK_PASSWORD_UPDATE;
+                    }
+                    else {
+                        // create new user and add to clientState list
+                        Client newClient = new Client(tempUsername, tempPassword, tempIsStudent, tempIsHappy);
+                        clientState.add(newClient);
+                        theOutput = "Disconnecting..."; // message to indicate disconnection from server
+                    }
                 } catch (IllegalArgumentException e) {
-                    theOutput = "Error creating user: " + e.getMessage() + " Please try again.";
+                    theOutput = e.getMessage() + "Try entering a new username:";
                     state = ASK_USERNAME_NEW;
                 }
                 break;
@@ -104,7 +113,7 @@ public class RuppinProtocol implements ProtocolInterface {
             case ASK_USERNAME_EXISTING:
                 tempUsername = theInput.trim();
                 if (isUsernameTaken(tempUsername)) {
-                    theOutput = "Username recognized. Please enter your password:";
+                    theOutput = "Enter your password:";
                     state = ASK_PASSWORD_EXISTING;
                 } else {
                     theOutput = "Username not found. Try again:";
@@ -112,14 +121,55 @@ public class RuppinProtocol implements ProtocolInterface {
                 break;
 
             case ASK_PASSWORD_EXISTING:
-                String password = theInput.trim();
-                if (validateUser(tempUsername, password)) {
-                    theOutput = "Login successful. Welcome back, " + tempUsername + "! ";
+                tempPassword = theInput.trim();
+                Client tempClient = new Client(tempUsername, tempPassword);
+                if (findClient(tempClient)) {
+                    Client client = getClientByUsername(tempUsername);
+                    theOutput = "Last time you gave me the following information: " +
+                                "You are " + (client.isStudent() ? "a student at Ruppin" : "not a student at Ruppin") +
+                                " and you are " + (client.isHappy() ? "Happy." : "not Happy.") + " Any changes since last time? [Y/N]";
+                    state = ASK_IF_UPDATE;
                 } else {
                     theOutput = "Incorrect password. Please try again:";
+                    state = ASK_PASSWORD_EXISTING;
                 }
                 break;
 
+            case ASK_IF_UPDATE:
+                if ("Y".equalsIgnoreCase(theInput)) {
+                    theOutput = "Are you a student in Ruppin? [Y/N]";
+                    state = ASK_IS_STUDENT;
+                    isUpdate = true;
+                } else if ("N".equalsIgnoreCase(theInput)) {
+                    theOutput = "Disconnecting..."; // message to indicate disconnection from server
+                } else {
+                    theOutput = "Invalid input. Any changes since last time? [Y/N]";
+                }
+                break;
+
+            case ASK_PASSWORD_UPDATE:
+                if ("Y".equalsIgnoreCase(theInput)) {
+                    theOutput = "Choose your new password:";
+                    state = ASK_PASSWORD_UPDATE_NEW;
+                } else if ("N".equalsIgnoreCase(theInput)) {
+                    theOutput = "Disconnecting..."; // message to indicate disconnection from server
+                } else {
+                    theOutput = "Invalid input. Do you want to change your password? [Y/N]";
+                }
+                break;
+
+            case ASK_PASSWORD_UPDATE_NEW:
+                tempPassword = theInput.trim();
+                Client client = getClientByUsername(tempUsername);
+                try {
+                    client.changePassword(tempPassword);
+                    theOutput = "Disconnecting..."; // message to indicate disconnection from server
+                } catch (IllegalArgumentException e) {
+                    theOutput = e.getMessage() + " Try again:";
+                    state = ASK_PASSWORD_UPDATE_NEW;
+                }
+                break;
+            
             default:
                 theOutput = "Unexpected input. Please try again.";
                 state = WAITING;
@@ -130,28 +180,17 @@ public class RuppinProtocol implements ProtocolInterface {
     }
 
     private boolean isUsernameTaken(String username) {
-        for (Client user : users) {
-            if (user.checkUser().equalsIgnoreCase(username)) {
+        for (Client client : clientState) {
+            if (client.checkUser().equalsIgnoreCase(username)) {
                 return true;
             }
         }
         return false;
     }
 
-    private boolean isValidPassword(String password) {
-        if (password.length() < 9) {
-            return false;
-        }
-        boolean hasUppercase = !password.equals(password.toLowerCase());
-        boolean hasLowercase = !password.equals(password.toUpperCase());
-        boolean hasNumber = password.matches(".*\\d.*");
-        return hasUppercase && hasLowercase && hasNumber;
-    }
-
-    private boolean validateUser(String username, String password) {
-        for (Client user : users) {
-            if (user.checkUser().equalsIgnoreCase(username) &&
-                user.checkPassword().equals(password)) {
+    private boolean findClient(Client tempClient) {
+        for (Client client : clientState) {
+            if (client.equals(tempClient)) {
                 return true;
             }
         }
@@ -159,9 +198,9 @@ public class RuppinProtocol implements ProtocolInterface {
     }
 
     private Client getClientByUsername(String username) {
-        for (Client user : users) {
-            if (user.checkUser().equalsIgnoreCase(username)) {
-                return user;
+        for (Client client : clientState) {
+            if (client.checkUser().equalsIgnoreCase(username)) {
+                return client;
             }
         }
         return null;

@@ -11,6 +11,11 @@ public class Client {
         isHappy = false;
     }
 
+    public Client(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
+
     public Client(String username, String password, boolean isStudent, boolean isHappy) {
         addUser(username);
         changePassword(password);
@@ -37,14 +42,17 @@ public class Client {
     public void addUser(String username) {
         // check for if the username is taken is done in the protocol with "isUsernameTaken"
         if (username == null || username.isEmpty()) {
-            throw new IllegalArgumentException("Username cannot be null or empty");
+            throw new IllegalArgumentException("Username cannot be null or empty. ");
         }
         this.username = username;
-    }
+        }
 
     public void changePassword(String password) {
         if (password == null || password.isEmpty()) {
-            throw new IllegalArgumentException("Password cannot be null or empty");
+            throw new IllegalArgumentException("Password cannot be null or empty. ");
+        }
+        if (!isValidPassword(password)) {
+            throw new IllegalArgumentException("Password must be at least 9 characters long, contain at least one uppercase letter, one lowercase letter, and one number. ");
         }
         this.password = password;
     }
@@ -55,6 +63,17 @@ public class Client {
 
     public void setHappy(boolean isHappy) {
         this.isHappy = isHappy;
+    }
+
+    // check whether we need to use contains here
+    private boolean isValidPassword(String password) {
+        if (password.length() < 9) {
+            return false;
+        }
+        boolean hasUppercase = !password.equals(password.toLowerCase());
+        boolean hasLowercase = !password.equals(password.toUpperCase());
+        boolean hasNumber = password.matches(".*\\d.*");
+        return hasUppercase && hasLowercase && hasNumber;
     }
 
     @Override
