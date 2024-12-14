@@ -1,21 +1,21 @@
 import java.net.*;
 import java.io.*;
 
-public class KnockKnockServer {
+public class RuppinServer {
     public void startServer() {
         ServerSocket serverSocket = null;
-        final int PORT = 4444;
+        final int PORT = 4445;
         try {
             serverSocket = new ServerSocket(PORT);
             System.out.println("[SERVER] Listening on port " + PORT + "...");
 
             while (true) {
                 try {
-                    // accept a client connection
+                    // Accept a client connection
                     Socket clientSocket = serverSocket.accept();
 
-                    // create a new thread to handle the client connection
-                    new ClientHandler(clientSocket).start(); // ****************************
+                    // Create a new thread to handle the client connection
+                    new ClientHandler(clientSocket).start();
 
                 } catch (IOException e) {
                     System.err.println("[SERVER] Accept failed from socket.");
@@ -57,19 +57,19 @@ class ClientHandler extends Thread {
             // Instantiate the KnockKnockProtocol directly
             KnockKnockProtocol protocol = new KnockKnockProtocol();
 
-            // get the initial output from the protocol
+            // Get the initial output from the protocol
             outputLine = protocol.processInput(null);
             out.println(outputLine);
 
-            // read input from the client and process it using the protocol
+            // Read input from the client and process it using the protocol
             while ((inputLine = in.readLine()) != null) {
                 if ("quit".equalsIgnoreCase(inputLine)) {
-                    break; // exit if the client sends "quit"
+                    break; // Exit if the client sends "quit"
                 }
                 outputLine = protocol.processInput(inputLine);
                 out.println(outputLine);
                 if ("Bye.".equals(outputLine)) {
-                    break; // exit if the protocol indicates the end of conversation
+                    break; // Exit if the protocol indicates the end of conversation
                 }
             }
         } catch (IOException e) {
