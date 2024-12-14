@@ -1,4 +1,4 @@
-public class KnockKnockProtocol {
+public class KnockKnockProtocol implements ProtocolInterface {
     private static final int WAITING = 0;
     private static final int SENT_KNOCK_KNOCK = 1;
     private static final int SENT_CLUE = 2;

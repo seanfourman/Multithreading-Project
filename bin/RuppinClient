@@ -1,19 +1,19 @@
 import java.io.*;
 import java.net.*;
 
-public class KnockKnockClient {
+public class RuppinClient {
     public static void main(String[] args) throws IOException {
-        Socket kkSocket = null;
+        Socket rpSocket = null;
         PrintWriter out = null;
         BufferedReader in = null;
 
         try {
             // create a socket to connect to the server
-            kkSocket = new Socket("127.0.0.1", 4444);
+            rpSocket = new Socket("127.0.0.1", 4445);
             // create output stream to send data to the server
-            out = new PrintWriter(kkSocket.getOutputStream(), true);
+            out = new PrintWriter(rpSocket.getOutputStream(), true);
             // create input stream to receive data from the server
-            in = new BufferedReader(new InputStreamReader(kkSocket.getInputStream()));
+            in = new BufferedReader(new InputStreamReader(rpSocket.getInputStream()));
         } catch (UnknownHostException e) {
             System.err.println("[CLIENT] Unknown Host.");
             System.exit(1);
@@ -44,6 +44,6 @@ public class KnockKnockClient {
         out.close();
         in.close();
         stdIn.close();
-        kkSocket.close();
+        rpSocket.close();
     }
 }

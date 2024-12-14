@@ -1,8 +1,8 @@
-import java.net.*;
 import java.io.*;
+import java.net.*;
 
 public class KnockKnockServer {
-    public void startServer() {
+    public void startServer(int flag) {
         ServerSocket serverSocket = null;
         final int PORT = 4444;
         try {
@@ -15,7 +15,7 @@ public class KnockKnockServer {
                     Socket clientSocket = serverSocket.accept();
 
                     // create a new thread to handle the client connection
-                    new ClientHandler(clientSocket).start(); // ****************************
+                    new ClientHandler(clientSocket, flag).start();
 
                 } catch (IOException e) {
                     System.err.println("[SERVER] Accept failed from socket.");
@@ -33,53 +33,6 @@ public class KnockKnockServer {
                     System.err.println("[SERVER] Error closing server socket.");
                     e.printStackTrace();
                 }
-            }
-        }
-    }
-}
-
-class ClientHandler extends Thread {
-    private Socket clientSocket;
-
-    public ClientHandler(Socket socket) {
-        this.clientSocket = socket;
-    }
-
-    public void run() {
-        try (
-            // Create output and input streams for the client connection
-            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-            BufferedReader in = new BufferedReader(
-                new InputStreamReader(clientSocket.getInputStream()))
-        ) {
-            String inputLine, outputLine;
-
-            // Instantiate the KnockKnockProtocol directly
-            KnockKnockProtocol protocol = new KnockKnockProtocol();
-
-            // get the initial output from the protocol
-            outputLine = protocol.processInput(null);
-            out.println(outputLine);
-
-            // read input from the client and process it using the protocol
-            while ((inputLine = in.readLine()) != null) {
-                if ("quit".equalsIgnoreCase(inputLine)) {
-                    break; // exit if the client sends "quit"
-                }
-                outputLine = protocol.processInput(inputLine);
-                out.println(outputLine);
-                if ("Bye.".equals(outputLine)) {
-                    break; // exit if the protocol indicates the end of conversation
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                // Close the client socket
-                clientSocket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
             }
         }
     }

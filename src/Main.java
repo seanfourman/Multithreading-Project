@@ -18,10 +18,10 @@ public class Main {
 
         if (protocolFlag == 1) {
             KnockKnockServer server = new KnockKnockServer();
-            server.startServer();
+            server.startServer(1);
         } else if (protocolFlag == 2) {
             RuppinServer server = new RuppinServer();
-            server.startServer();
+            server.startServer(2);
         }
     }
 }
