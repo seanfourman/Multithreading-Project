@@ -2,82 +2,103 @@ import java.util.ArrayList;
 
 public class RuppinProtocol implements ProtocolInterface {
     private static final int WAITING = 0;
-    private static final int IF_USER_EXISTS = 1;
-    private static final int NEW_USER = 2;
-    private static final int EXISTING_USER = 3;
-
-    private static final int ASK_PASSWORD = 4;
-    private static final int USER_CREATED = 5;
-    private static final int USER_EXISTS = 6;
+    private static final int ASK_NEW_USER = 1;
+    private static final int ASK_USERNAME_NEW = 2;
+    private static final int ASK_PASSWORD_NEW = 3;
+    private static final int NEW_USER_CREATED = 4;
+    private static final int ASK_USERNAME_EXISTING = 5;
+    private static final int ASK_PASSWORD_EXISTING = 6;
+    private static final int USER_LOGGED_IN = 7;
 
     private int state = WAITING;
-    private ArrayList<Client> clientState;
-    private Client newClient;
-    private String username;
-    private String password;
+    private ArrayList<Client> users;
+    private String tempUsername;
+    private String tempPassword;
 
-    public RuppinProtocol(ArrayList<Client> clientState) {
-        this.clientState = clientState;
+    public RuppinProtocol(ArrayList<Client> users) {
+        this.users = users;
     }
 
     public String processInput(String theInput) {
-        String theOutput = "";
+        String theOutput;
 
         switch (state) {
             case WAITING:
                 theOutput = "New User? [Y/N]";
-                state = IF_USER_EXISTS;
+                state = ASK_NEW_USER;
                 break;
 
-            case IF_USER_EXISTS:
+            case ASK_NEW_USER:
                 if ("Y".equalsIgnoreCase(theInput)) {
-                    newClient = new Client();
-                    theOutput = "Enter username:";
-                    state = NEW_USER;
+                    theOutput = "Enter desired username:";
+                    state = ASK_USERNAME_NEW;
                 } else if ("N".equalsIgnoreCase(theInput)) {
-                    theOutput = "Enter existing username:";
-                    state = EXISTING_USER;
+                    theOutput = "Enter your username:";
+                    state = ASK_USERNAME_EXISTING;
                 } else {
-                    theOutput = "Invalid Input. New User? [Y/N]";
+                    theOutput = "Invalid input. New User? [Y/N]";
                 }
                 break;
 
-            case NEW_USER:
-                username = theInput.trim();
-                if (isUsernameTaken(username)) {
+            case ASK_USERNAME_NEW:
+                tempUsername = theInput.trim();
+                if (isUsernameTaken(tempUsername)) {
                     theOutput = "Username already exists. Try another username:";
-                    state = NEW_USER; // re-run the state to get a new username
                 } else {
-                    newClient.setUsername(username);
                     theOutput = "Enter password:";
-                    state = ASK_PASSWORD;
+                    state = ASK_PASSWORD_NEW;
                 }
                 break;
 
-            case EXISTING_USER:
-                username = theInput.trim();
-                if (isUsernameTaken(username)) {
+            case ASK_PASSWORD_NEW:
+                tempPassword = theInput.trim();
+                if (isValidPassword(tempPassword)) {
+                    try {
+                        // create new user and add to users list
+                        Client newUser = new Client(tempUsername, tempPassword, false, false);
+                        users.add(newUser);
+                        theOutput = "User created successfully! Welcome, " + tempUsername;
+                        state = NEW_USER_CREATED;
+                    } catch (IllegalArgumentException e) {
+                        theOutput = "Error creating user: " + e.getMessage() + " Please try again.";
+                        state = ASK_PASSWORD_NEW;
+                    }
+                } else {
+                    theOutput = "Password must be at least 9 characters long and include at least one uppercase letter, one lowercase letter, and one number. Please enter a valid password:";
+                    state = ASK_PASSWORD_NEW;
+                }
+                break;
+
+            case NEW_USER_CREATED:
+                theOutput = "You are now logged in. Thank you!";
+                // Optionally reset the state to WAITING or end the session
+                state = WAITING;
+                break;
+
+            case ASK_USERNAME_EXISTING:
+                tempUsername = theInput.trim();
+                if (isUsernameTaken(tempUsername)) {
                     theOutput = "Username recognized. Please enter your password:";
-                    state = ASK_PASSWORD; // reuse ASK_PASSWORD state for simplicity
+                    state = ASK_PASSWORD_EXISTING;
                 } else {
                     theOutput = "Username not found. Try again:";
-                    state = EXISTING_USER; // re-run the state to get a new username
                 }
                 break;
 
-            case ASK_PASSWORD:
-                password = theInput.trim();
-                if (!isPasswordStrong(password)) {
-                    theOutput = "Password does not meet requirements. Try another password:";
-                    state = ASK_PASSWORD; // re-run the state to get a new username
+            case ASK_PASSWORD_EXISTING:
+                String password = theInput.trim();
+                if (validateUser(tempUsername, password)) {
+                    theOutput = "Login successful! Welcome back, " + tempUsername;
+                    state = USER_LOGGED_IN;
                 } else {
-                    newClient.setPassword(password);
-                    state = USER_CREATED;
+                    theOutput = "Incorrect password. Please try again:";
                 }
                 break;
 
-            case USER_EXISTS:
-                // check if the password matches the username
+            case USER_LOGGED_IN:
+                theOutput = "You are now logged in. Thank you!";
+                // Optionally reset the state to WAITING or end the session
+                state = WAITING;
                 break;
 
             default:
@@ -90,16 +111,31 @@ public class RuppinProtocol implements ProtocolInterface {
     }
 
     private boolean isUsernameTaken(String username) {
-        for (Client user : clientState) {
-            if (user.getUsername().equalsIgnoreCase(username)) {
+        for (Client user : users) {
+            if (user.checkUser().equalsIgnoreCase(username)) {
                 return true;
             }
         }
         return false;
     }
 
-    private boolean isPasswordStrong(String password) {
-        // check for password strength
-        return true;
+    private boolean isValidPassword(String password) {
+        if (password.length() < 9) {
+            return false;
+        }
+        boolean hasUppercase = !password.equals(password.toLowerCase());
+        boolean hasLowercase = !password.equals(password.toUpperCase());
+        boolean hasNumber = password.matches(".*\\d.*");
+        return hasUppercase && hasLowercase && hasNumber;
+    }
+
+    private boolean validateUser(String username, String password) {
+        for (Client user : users) {
+            if (user.checkUser().equalsIgnoreCase(username) &&
+                user.checkPassword().equals(password)) {
+                return true;
+            }
+        }
+        return false;
     }
 }

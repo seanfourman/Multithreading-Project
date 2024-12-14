@@ -12,17 +12,17 @@ public class Client {
     }
 
     public Client(String username, String password, boolean isStudent, boolean isHappy) {
-        setUsername(username);
-        setPassword(password);
+        addUser(username);
+        changePassword(password);
         setStudent(isStudent);
         setHappy(isHappy);
     }
 
-    public String getUsername() {
+    public String checkUser() {
         return username;
     }
 
-    public String getPassword() {
+    public String checkPassword() {
         return password;
     }
 
@@ -34,7 +34,7 @@ public class Client {
         return isHappy;
     }
 
-    public void setUsername(String username) {
+    public void addUser(String username) {
         // check for if the username is taken is done in the protocol with "isUsernameTaken"
         if (username == null || username.isEmpty()) {
             throw new IllegalArgumentException("Username cannot be null or empty");
@@ -42,7 +42,7 @@ public class Client {
         this.username = username;
     }
 
-    public void setPassword(String password) {
+    public void changePassword(String password) {
         if (password == null || password.isEmpty()) {
             throw new IllegalArgumentException("Password cannot be null or empty");
         }
@@ -65,5 +65,16 @@ public class Client {
                 ", isStudent=" + isStudent +
                 ", isHappy=" + isHappy +
                 '}';
+    }
+
+    @Override
+    public boolean equals(Object checkedClient) {
+        if (this == checkedClient) return true;
+        if (checkedClient == null || getClass() != checkedClient.getClass()) return false;
+    
+        Client client = (Client) checkedClient;
+    
+        if (username != null ? !username.equals(client.username) : client.username != null) return false;
+        return password != null ? password.equals(client.password) : client.password == null;
     }
 }
