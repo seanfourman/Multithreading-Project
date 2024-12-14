@@ -2,7 +2,7 @@ import java.util.ArrayList;
 
 public class RuppinProtocol implements ProtocolInterface {
     private static final int WAITING = 0;
-    private static final int ASK_NEW_USER = 1;
+    private static final int ASK_USER_TYPE = 1;
     private static final int ASK_USERNAME_NEW = 2;
     private static final int ASK_PASSWORD_NEW = 3;
     private static final int NEW_USER_CREATED = 4;
@@ -25,21 +25,22 @@ public class RuppinProtocol implements ProtocolInterface {
         switch (state) {
             case WAITING:
                 theOutput = "New User? [Y/N]";
-                state = ASK_NEW_USER;
+                state = ASK_USER_TYPE;
                 break;
 
-            case ASK_NEW_USER:
+            case ASK_USER_TYPE:
                 if ("Y".equalsIgnoreCase(theInput)) {
-                    theOutput = "Enter desired username:";
+                    theOutput = "Enter new username:";
                     state = ASK_USERNAME_NEW;
                 } else if ("N".equalsIgnoreCase(theInput)) {
                     theOutput = "Enter your username:";
                     state = ASK_USERNAME_EXISTING;
                 } else {
-                    theOutput = "Invalid input. New User? [Y/N]";
+                    theOutput = "Invalid Input. New User? [Y/N]";
                 }
                 break;
-
+            
+            // TYPE -> NEW USER
             case ASK_USERNAME_NEW:
                 tempUsername = theInput.trim();
                 if (isUsernameTaken(tempUsername)) {
@@ -75,6 +76,7 @@ public class RuppinProtocol implements ProtocolInterface {
                 state = WAITING;
                 break;
 
+            // TYPE -> EXISTING USER
             case ASK_USERNAME_EXISTING:
                 tempUsername = theInput.trim();
                 if (isUsernameTaken(tempUsername)) {
