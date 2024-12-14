@@ -1,9 +1,11 @@
 import java.io.*;
 import java.net.*;
+import java.util.ArrayList;
 
 public class ClientHandler extends Thread {
     private Socket clientSocket;
     private int flag; // use this flag to determine which protocol to use
+    private ArrayList<Client> clientState;
 
     public ClientHandler(Socket socket) {
         this.clientSocket = socket;
@@ -13,6 +15,12 @@ public class ClientHandler extends Thread {
     public ClientHandler(Socket socket, int flag) {
         this.clientSocket = socket;
         this.flag = flag;
+    }
+
+    public ClientHandler(Socket socket, int flag, ArrayList<Client> clientState) {
+        this.clientSocket = socket;
+        this.flag = flag;
+        this.clientState = clientState;
     }
 
     public void run() {
@@ -27,7 +35,7 @@ public class ClientHandler extends Thread {
             if (flag == 1) {
                 protocol = new KnockKnockProtocol();
             } else if (flag == 2) {
-                protocol = new RuppinProtocol();
+                protocol = new RuppinProtocol(clientState);
             } else {
                 System.err.println("[SERVER] Invalid Protocol. Please provide 1 or 2 as an argument.");
                 clientSocket.close();
@@ -45,7 +53,7 @@ public class ClientHandler extends Thread {
                 }
                 outputLine = protocol.processInput(inputLine);
                 out.println(outputLine);
-                if ("Bye.".equals(outputLine) || "Goodbye!".equals(outputLine)) {
+                if ("Bye.".equals(outputLine) || "Goodbye!".equals(outputLine)) { // NEED TO CHANGE THIS AT THE END
                     break; // exit if the protocol indicates the end of conversation
                 }
             }
