@@ -1,4 +1,8 @@
 import java.util.ArrayList;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class RuppinProtocol implements ProtocolInterface {
     // DEFAULT PROTOCOL STATES
@@ -101,6 +105,9 @@ public class RuppinProtocol implements ProtocolInterface {
                         // create new user and add to clientState list
                         Client newClient = new Client(tempUsername, tempPassword, tempIsStudent, tempIsHappy);
                         clientState.add(newClient);
+                        if (clientState.size() % 3 == 0) {
+                            saveClientsToCSV(clientState);
+                        }
                         theOutput = "Disconnecting..."; // message to indicate disconnection from server
                     }
                 } catch (IllegalArgumentException e) {
@@ -204,5 +211,27 @@ public class RuppinProtocol implements ProtocolInterface {
             }
         }
         return null;
+    }
+
+    private void saveClientsToCSV(ArrayList<Client> users) {
+        String date = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
+        String filename = "csv." + date + "_backup.csv";
+
+        try (FileWriter writer = new FileWriter(filename)) {
+            writer.append("Username,Password,IsStudent,IsHappy\n");
+            for (Client user : users) {
+                writer.append(user.checkUser())
+                      .append(',')
+                      .append(user.checkPassword())
+                      .append(',')
+                      .append(Boolean.toString(user.isStudent()))
+                      .append(',')
+                      .append(Boolean.toString(user.isHappy()))
+                      .append('\n');
+            }
+            writer.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
