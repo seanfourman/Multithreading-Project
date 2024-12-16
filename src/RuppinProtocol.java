@@ -104,9 +104,13 @@ public class RuppinProtocol implements ProtocolInterface {
                     else {
                         // create new user and add to clientState list
                         Client newClient = new Client(tempUsername, tempPassword, tempIsStudent, tempIsHappy);
-                        clientState.add(newClient);
-                        if (clientState.size() % 3 == 0) {
-                            saveClientsToCSV(clientState);
+                        // synchronized may not be needed here (***)
+                        synchronized (clientState) {
+                            clientState.add(newClient);
+                            // check if we need to save the clients to a CSV file
+                            if (clientState.size() % 3 == 0) {
+                                saveClientsToCSV(clientState);
+                            }
                         }
                         theOutput = "Disconnecting..."; // message to indicate disconnection from server
                     }
@@ -186,7 +190,9 @@ public class RuppinProtocol implements ProtocolInterface {
         return theOutput;
     }
 
-    private boolean isUsernameTaken(String username) {
+    // synchronized may not be needed here in all the methods (***)
+
+    private synchronized boolean isUsernameTaken(String username) {
         for (Client client : clientState) {
             if (client.checkUser().equalsIgnoreCase(username)) {
                 return true;
@@ -195,7 +201,7 @@ public class RuppinProtocol implements ProtocolInterface {
         return false;
     }
 
-    private boolean findClient(Client tempClient) {
+    private synchronized boolean findClient(Client tempClient) {
         for (Client client : clientState) {
             if (client.equals(tempClient)) {
                 return true;
@@ -204,7 +210,7 @@ public class RuppinProtocol implements ProtocolInterface {
         return false;
     }
 
-    private Client getClientByUsername(String username) {
+    private synchronized Client getClientByUsername(String username) {
         for (Client client : clientState) {
             if (client.checkUser().equalsIgnoreCase(username)) {
                 return client;
@@ -217,21 +223,23 @@ public class RuppinProtocol implements ProtocolInterface {
         String date = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
         String filename = "csv." + date + "_backup.csv";
 
-        try (FileWriter writer = new FileWriter(filename)) {
-            writer.append("Username,Password,IsStudent,IsHappy\n");
-            for (Client user : users) {
-                writer.append(user.checkUser())
-                      .append(',')
-                      .append(user.checkPassword())
-                      .append(',')
-                      .append(Boolean.toString(user.isStudent()))
-                      .append(',')
-                      .append(Boolean.toString(user.isHappy()))
-                      .append('\n');
+        synchronized (clientState) {
+            try (FileWriter writer = new FileWriter(filename)) {
+                writer.append("Username,Password,IsStudent,IsHappy\n");
+                for (Client user : users) {
+                    writer.append(user.checkUser())
+                        .append(',')
+                        .append(user.checkPassword())
+                        .append(',')
+                        .append(Boolean.toString(user.isStudent()))
+                        .append(',')
+                        .append(Boolean.toString(user.isHappy()))
+                        .append('\n');
+                }
+                writer.flush();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            writer.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
 }
