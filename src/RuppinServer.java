@@ -13,12 +13,12 @@ public class RuppinServer {
         try {
             serverSocket = new ServerSocket(PORT);
             System.out.println("[SERVER] Listening on port " + PORT + "...");
+            loadUsersFromBackup("./");
             
             while (true) {
                 try {
                     // accept a client connection and create a new socket for the client
                     Socket clientSocket = serverSocket.accept();
-                    loadUsersFromBackup("./");
 
                     // create a new thread to handle the client connection
                     new ClientHandler(clientSocket, flag, clientState).start();
