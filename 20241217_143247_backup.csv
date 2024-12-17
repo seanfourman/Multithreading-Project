@@ -1,0 +1,4 @@
+Username,Password,IsStudent,IsHappy
+testuser1,testPassword1,true,true
+testuser2,testPassword2,false,false
+testuser3,testPassword3,false,false

@@ -71,7 +71,16 @@ public class RuppinServer {
     
                         Client client = new Client(username, password, isStudent, isHappy);
                         synchronized (clientState) {
-                            clientState.add(client);
+                            boolean isAdded = false;
+                            for (Client existingClient : clientState) {
+                                if (existingClient.getUsername().equals(client.getUsername())) {
+                                    isAdded = true;
+                                    break;
+                                }
+                            }
+                            if (!isAdded) {
+                                clientState.add(client);
+                            }
                         }
                     }
                 }
