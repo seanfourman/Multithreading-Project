@@ -17,6 +17,7 @@ public class KnockKnockProtocol implements ProtocolInterface {
         "Is there an echo in here?"
     };
 
+    @Override
     public String processInput(String theInput) {
         String theOutput = null;
 

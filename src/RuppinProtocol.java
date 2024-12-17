@@ -32,6 +32,7 @@ public class RuppinProtocol implements ProtocolInterface {
         this.clientState = clientState;
     }
 
+    @Override
     public String processInput(String theInput) {
         String theOutput;
 
