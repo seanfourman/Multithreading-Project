@@ -58,7 +58,7 @@ public class RuppinProtocol implements ProtocolInterface {
             // TYPE -> NEW USER
             case ASK_USERNAME_NEW:
                 tempUsername = theInput.trim();
-                if (isUsernameTaken(tempUsername)) {
+                if (checkUser(tempUsername)) {
                     theOutput = "Username already exists. Try another username:";
                 } else {
                     theOutput = "Enter password:";
@@ -96,23 +96,14 @@ public class RuppinProtocol implements ProtocolInterface {
                 }
                 try {
                     if (isUpdate) {
-                        Client client = getClientByUsername(tempUsername);
+                        Client client = findClient(tempUsername);
                         client.setStudent(tempIsStudent);
                         client.setHappy(tempIsHappy);
                         theOutput = "Do you want to change your password? [Y/N]";
                         state = ASK_PASSWORD_UPDATE;
                     }
                     else {
-                        // create new user and add to clientState list
-                        Client newClient = new Client(tempUsername, tempPassword, tempIsStudent, tempIsHappy);
-                        // synchronized may not be needed here (***)
-                        synchronized (clientState) {
-                            clientState.add(newClient);
-                            // check if we need to save the clients to a CSV file
-                            if (clientState.size() % 3 == 0) {
-                                saveClientsToCSV(clientState);
-                            }
-                        }
+                        addUser(tempUsername, tempPassword, tempIsStudent, tempIsHappy);
                         theOutput = "Disconnecting..."; // message to indicate disconnection from server
                     }
                 } catch (IllegalArgumentException e) {
@@ -124,7 +115,7 @@ public class RuppinProtocol implements ProtocolInterface {
             // TYPE -> EXISTING USER
             case ASK_USERNAME_EXISTING:
                 tempUsername = theInput.trim();
-                if (isUsernameTaken(tempUsername)) {
+                if (checkUser(tempUsername)) {
                     theOutput = "Enter your password:";
                     state = ASK_PASSWORD_EXISTING;
                 } else {
@@ -134,18 +125,18 @@ public class RuppinProtocol implements ProtocolInterface {
 
             case ASK_PASSWORD_EXISTING:
                 tempPassword = theInput.trim();
-                Client tempClient = new Client(tempUsername, tempPassword);
-                if (findClient(tempClient)) {
-                    Client client = getClientByUsername(tempUsername);
+                if (checkPassword(tempUsername, tempPassword)) {
+                    Client client = findClient(tempUsername);
                     theOutput = "Last time you gave me the following information: " +
                                 "You are " + (client.isStudent() ? "a student at Ruppin" : "not a student at Ruppin") +
                                 " and you are " + (client.isHappy() ? "Happy." : "not Happy.") + " Any changes since last time? [Y/N]";
                     state = ASK_IF_UPDATE;
                 } else {
-                    theOutput = "Incorrect password. Please try again:";
+                    theOutput = "Incorrect password. Try again:";
                     state = ASK_PASSWORD_EXISTING;
                 }
                 break;
+            
 
             case ASK_IF_UPDATE:
                 if ("Y".equalsIgnoreCase(theInput)) {
@@ -172,9 +163,9 @@ public class RuppinProtocol implements ProtocolInterface {
 
             case ASK_PASSWORD_UPDATE_NEW:
                 tempPassword = theInput.trim();
-                Client client = getClientByUsername(tempUsername);
                 try {
-                    client.changePassword(tempPassword);
+                    changePassword(tempUsername, tempPassword);
+                    //client.setPassword(tempPassword);
                     theOutput = "Disconnecting..."; // message to indicate disconnection from server
                 } catch (IllegalArgumentException e) {
                     theOutput = e.getMessage() + " Try again:";
@@ -183,7 +174,7 @@ public class RuppinProtocol implements ProtocolInterface {
                 break;
             
             default:
-                theOutput = "Unexpected input. Please try again.";
+                theOutput = "Unexpected input. Try again:";
                 state = WAITING;
                 break;
         }
@@ -192,45 +183,63 @@ public class RuppinProtocol implements ProtocolInterface {
     }
 
     // synchronized may not be needed here in all the methods (***)
-
-    private synchronized boolean isUsernameTaken(String username) {
+    public synchronized boolean checkUser(String username) {
         for (Client client : clientState) {
-            if (client.checkUser().equalsIgnoreCase(username)) {
+            if (client.getUsername().equalsIgnoreCase(username)) {
                 return true;
             }
         }
         return false;
     }
 
-    private synchronized boolean findClient(Client tempClient) {
+    public synchronized boolean checkPassword(String username, String password) {
         for (Client client : clientState) {
-            if (client.equals(tempClient)) {
+            if (client.getUsername().equalsIgnoreCase(username) && client.getPassword().equals(password)) {
                 return true;
             }
         }
         return false;
     }
 
-    private synchronized Client getClientByUsername(String username) {
+    public synchronized Client findClient(String username) {
         for (Client client : clientState) {
-            if (client.checkUser().equalsIgnoreCase(username)) {
+            if (client.getUsername().equalsIgnoreCase(username)) {
                 return client;
             }
         }
         return null;
     }
 
-    private void saveClientsToCSV(ArrayList<Client> users) {
+    public synchronized void changePassword(String username, String newPassword) {
+        Client client = findClient(username);
+        if (client != null) {
+            client.setPassword(newPassword);
+        } else {
+            throw new IllegalArgumentException("User not found. ");
+        }
+    }
+
+    public void addUser(String username, String password, boolean isStudent, boolean isHappy) {
+        Client newClient = new Client(username, password, isStudent, isHappy);
+        synchronized (clientState) {
+            clientState.add(newClient);
+            if (clientState.size() % 3 == 0) {
+                saveUsersToCSV(clientState);
+            }
+        }
+    }
+
+    public void saveUsersToCSV(ArrayList<Client> users) {
         String date = new SimpleDateFormat("yyyyMMdd_HHmmss").format(new Date());
-        String filename = "csv." + date + "_backup.csv";
+        String filename = date + "_backup.csv";
 
         synchronized (clientState) {
             try (FileWriter writer = new FileWriter(filename)) {
                 writer.append("Username,Password,IsStudent,IsHappy\n");
                 for (Client user : users) {
-                    writer.append(user.checkUser())
+                    writer.append(user.getUsername())
                         .append(',')
-                        .append(user.checkPassword())
+                        .append(user.getPassword())
                         .append(',')
                         .append(Boolean.toString(user.isStudent()))
                         .append(',')

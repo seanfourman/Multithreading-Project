@@ -17,17 +17,17 @@ public class Client {
     }
 
     public Client(String username, String password, boolean isStudent, boolean isHappy) {
-        addUser(username);
-        changePassword(password);
+        setUsername(username);
+        setPassword(password);
         setStudent(isStudent);
         setHappy(isHappy);
     }
 
-    public String checkUser() {
+    public String getUsername() {
         return username;
     }
 
-    public String checkPassword() {
+    public String getPassword() {
         return password;
     }
 
@@ -39,7 +39,7 @@ public class Client {
         return isHappy;
     }
 
-    public void addUser(String username) {
+    public void setUsername(String username) {
         // check for if the username is taken is done in the protocol with "isUsernameTaken"
         if (username == null || username.isEmpty()) {
             throw new IllegalArgumentException("Username cannot be null or empty. ");
@@ -47,7 +47,7 @@ public class Client {
         this.username = username;
         }
 
-    public void changePassword(String password) {
+    public void setPassword(String password) {
         if (password == null || password.isEmpty()) {
             throw new IllegalArgumentException("Password cannot be null or empty. ");
         }

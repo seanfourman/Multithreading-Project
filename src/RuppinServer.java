@@ -18,6 +18,7 @@ public class RuppinServer {
                 try {
                     // accept a client connection and create a new socket for the client
                     Socket clientSocket = serverSocket.accept();
+                    loadUsersFromBackup("./");
 
                     // create a new thread to handle the client connection
                     new ClientHandler(clientSocket, flag, clientState).start();
@@ -40,5 +41,45 @@ public class RuppinServer {
                 }
             }
         }
+    }
+
+    public void loadUsersFromBackup(String folderPath) {
+        File folder = new File(folderPath);
+        if (!folder.exists() || !folder.isDirectory()) {
+            System.err.println("[SERVER] Invalid folder path: " + folderPath);
+            return;
+        }
+    
+        File[] backupFiles = folder.listFiles((dir, name) -> name.matches("\\d{8}_\\d{6}_backup\\.csv"));
+        if (backupFiles == null || backupFiles.length == 0) {
+            System.out.println("[SERVER] No backup files found in the folder.");
+            return;
+        }
+    
+        for (File file : backupFiles) {
+            System.out.println("[SERVER] Reading backup file: " + file.getName());
+            try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+                String line;
+                br.readLine(); // skip the header line
+                while ((line = br.readLine()) != null) {
+                    String[] parts = line.split(",");
+                    if (parts.length == 4) {
+                        String username = parts[0];
+                        String password = parts[1];
+                        boolean isStudent = Boolean.parseBoolean(parts[2]);
+                        boolean isHappy = Boolean.parseBoolean(parts[3]);
+    
+                        Client client = new Client(username, password, isStudent, isHappy);
+                        synchronized (clientState) {
+                            clientState.add(client);
+                        }
+                    }
+                }
+            } catch (IOException e) {
+                System.err.println("[SERVER] Error reading file: " + file.getName());
+                e.printStackTrace();
+            }
+        }
+        System.out.println("[SERVER] Backup files loaded successfully.");
     }
 }
