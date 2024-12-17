@@ -155,6 +155,8 @@ public class RuppinProtocol implements ProtocolInterface {
                     theOutput = "Choose your new password:";
                     state = ASK_PASSWORD_UPDATE_NEW;
                 } else if ("N".equalsIgnoreCase(theInput)) {
+                    // backup the user with the new isStudent, isHappy values to the CSV -> NOT ONLY WHEN DIVISIBLE BY 3 BUT NEEDED FOR NOT LOSING DATA
+                    saveUsersToCSV(clientState);
                     theOutput = "Disconnecting..."; // message to indicate disconnection from server
                 } else {
                     theOutput = "Invalid input. Do you want to change your password? [Y/N]";
@@ -165,7 +167,8 @@ public class RuppinProtocol implements ProtocolInterface {
                 tempPassword = theInput.trim();
                 try {
                     changePassword(tempUsername, tempPassword);
-                    //client.setPassword(tempPassword);
+                    // backup the user with the new password to the CSV -> NOT ONLY WHEN DIVISIBLE BY 3 BUT NEEDED FOR NOT LOSING DATA
+                    saveUsersToCSV(clientState);
                     theOutput = "Disconnecting..."; // message to indicate disconnection from server
                 } catch (IllegalArgumentException e) {
                     theOutput = e.getMessage() + " Try again:";

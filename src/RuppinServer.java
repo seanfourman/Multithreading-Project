@@ -70,17 +70,12 @@ public class RuppinServer {
                         boolean isHappy = Boolean.parseBoolean(parts[3]);
     
                         Client client = new Client(username, password, isStudent, isHappy);
+                        // this will not 100% work, it's based on the assumption that the last backup file read is the most recent (***)
                         synchronized (clientState) {
-                            boolean isAdded = false;
-                            for (Client existingClient : clientState) {
-                                if (existingClient.getUsername().equals(client.getUsername())) {
-                                    isAdded = true;
-                                    break;
-                                }
-                            }
-                            if (!isAdded) {
-                                clientState.add(client);
-                            }
+                            // remove any existing client with the same username
+                            clientState.removeIf(existingClient -> existingClient.getUsername().equals(client.getUsername()));
+                            // add the new client
+                            clientState.add(client);
                         }
                     }
                 }
