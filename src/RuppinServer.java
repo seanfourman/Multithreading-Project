@@ -7,11 +7,12 @@ public class RuppinServer {
 
     public void startServer(int flag) {
         ServerSocket serverSocket = null;
+        // don't need constructor because we declare the port as final (?)
         final int PORT = 4445;
         clientState = new ArrayList<Client>();
 
         try {
-            serverSocket = new ServerSocket(PORT);
+            serverSocket = new ServerSocket(PORT); // create a server socket
             System.out.println("[SERVER] Listening on port " + PORT + "...");
             loadUsersFromBackup("./");
             
@@ -19,6 +20,7 @@ public class RuppinServer {
                 try {
                     // accept a client connection and create a new socket for the client
                     Socket clientSocket = serverSocket.accept();
+                    System.out.println("[SERVER] New client connected.");
 
                     // create a new thread to handle the client connection
                     new ClientHandler(clientSocket, flag, clientState).start();
