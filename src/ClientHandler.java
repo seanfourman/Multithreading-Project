@@ -2,6 +2,8 @@ import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
 
+
+// maybe need to add here implements Runnable?
 public class ClientHandler extends Thread {
     private Socket clientSocket;
     private int flag; // use this flag to determine which protocol to use
