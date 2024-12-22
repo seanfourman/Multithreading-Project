@@ -2,22 +2,22 @@ import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
 
-public class ClientHandler implements Runnable {
+public class ConnectionHandler implements Runnable {
     private Socket clientSocket;
     private int flag; // use this flag to determine which protocol to use
     private ArrayList<Client> clientState;
 
-    public ClientHandler(Socket socket) {
+    public ConnectionHandler(Socket socket) {
         this.clientSocket = socket;
         this.flag = 1; // default to KnockKnockProtocol
     }
 
-    public ClientHandler(Socket socket, int flag) {
+    public ConnectionHandler(Socket socket, int flag) {
         this.clientSocket = socket;
         this.flag = flag;
     }
 
-    public ClientHandler(Socket socket, int flag, ArrayList<Client> clientState) {
+    public ConnectionHandler(Socket socket, int flag, ArrayList<Client> clientState) {
         this.clientSocket = socket;
         this.flag = flag;
         this.clientState = clientState;

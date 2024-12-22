@@ -24,7 +24,7 @@ public class RuppinServer {
                     System.out.println("[SERVER] New client connected.");
 
                     // create a new thread to handle the client connection
-                    Thread thread = new Thread(new ClientHandler(clientSocket, flag, clientState));
+                    Thread thread = new Thread(new ConnectionHandler(clientSocket, flag, clientState));
                     threads.add(thread);
                     thread.start();
 

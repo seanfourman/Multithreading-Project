@@ -17,7 +17,7 @@ public class KnockKnockServer {
                     Socket clientSocket = serverSocket.accept();
 
                     // create a new thread to handle the client connection
-                    Thread thread = new Thread(new ClientHandler(clientSocket, flag));
+                    Thread thread = new Thread(new ConnectionHandler(clientSocket, flag));
                     threads.add(thread);
                     thread.start();
 
