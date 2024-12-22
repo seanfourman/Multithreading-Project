@@ -61,6 +61,13 @@ public class ClientHandler implements Runnable {
             clientSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            try {
+                clientSocket.close();
+                System.out.println("[SERVER] Client disconnected.");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
