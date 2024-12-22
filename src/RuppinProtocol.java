@@ -103,8 +103,14 @@ public class RuppinProtocol implements ProtocolInterface {
                         state = ASK_PASSWORD_UPDATE;
                     }
                     else {
-                        addUser(tempUsername, tempPassword, tempIsStudent, tempIsHappy);
-                        theOutput = "Disconnecting..."; // message to indicate disconnection from server
+                        // need to re-check here if the username is still available because there could be multiple clients trying to add a new user at the same time
+                        if (checkUser(tempUsername)) {
+                            theOutput = "Username already exists. Try another username:";
+                            state = ASK_USERNAME_NEW;
+                        } else {
+                            addUser(tempUsername, tempPassword, tempIsStudent, tempIsHappy);
+                            theOutput = "Disconnecting..."; // message to indicate disconnection from server
+                        }
                     }
                 } catch (IllegalArgumentException e) {
                     theOutput = e.getMessage() + "Try entering a new username:";

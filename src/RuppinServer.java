@@ -7,6 +7,7 @@ public class RuppinServer {
 
     public void startServer(int flag) {
         ServerSocket serverSocket = null;
+        ArrayList<Thread> threads = new ArrayList<>();
         // don't need constructor because we declare the port as final (?)
         final int PORT = 4445;
         clientState = new ArrayList<Client>();
@@ -23,7 +24,9 @@ public class RuppinServer {
                     System.out.println("[SERVER] New client connected.");
 
                     // create a new thread to handle the client connection
-                    new ClientHandler(clientSocket, flag, clientState).start();
+                    Thread thread = new Thread(new ClientHandler(clientSocket, flag, clientState));
+                    threads.add(thread);
+                    thread.start();
 
                 } catch (IOException e) {
                     System.err.println("[SERVER] Accept failed from socket.");

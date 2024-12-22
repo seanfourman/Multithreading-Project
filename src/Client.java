@@ -40,7 +40,7 @@ public class Client {
     }
 
     public void setUsername(String username) {
-        // check for if the username is taken is done in the protocol with "isUsernameTaken"
+        // check for if the username is taken is done in the protocol with "checkUser"
         if (username == null || username.isEmpty()) {
             throw new IllegalArgumentException("Username cannot be null or empty. ");
         }

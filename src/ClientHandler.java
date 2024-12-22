@@ -6,7 +6,6 @@ public class ClientHandler implements Runnable {
     private Socket clientSocket;
     private int flag; // use this flag to determine which protocol to use
     private ArrayList<Client> clientState;
-    private Thread thread;
 
     public ClientHandler(Socket socket) {
         this.clientSocket = socket;
@@ -22,13 +21,6 @@ public class ClientHandler implements Runnable {
         this.clientSocket = socket;
         this.flag = flag;
         this.clientState = clientState;
-    }
-
-    public void start() {
-        if (thread == null) {
-            thread = new Thread(this);
-            thread.start();
-        }
     }
 
     @Override

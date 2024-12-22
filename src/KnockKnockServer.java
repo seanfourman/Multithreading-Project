@@ -1,9 +1,11 @@
 import java.io.*;
 import java.net.*;
+import java.util.ArrayList;
 
 public class KnockKnockServer {
     public void startServer(int flag) {
         ServerSocket serverSocket = null;
+        ArrayList<Thread> threads = new ArrayList<>();
         final int PORT = 4444;
         try {
             serverSocket = new ServerSocket(PORT);
@@ -15,7 +17,9 @@ public class KnockKnockServer {
                     Socket clientSocket = serverSocket.accept();
 
                     // create a new thread to handle the client connection
-                    new ClientHandler(clientSocket, flag).start();
+                    Thread thread = new Thread(new ClientHandler(clientSocket, flag));
+                    threads.add(thread);
+                    thread.start();
 
                 } catch (IOException e) {
                     System.err.println("[SERVER] Accept failed from socket.");
