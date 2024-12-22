@@ -2,12 +2,11 @@ import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
 
-
-// maybe need to add here implements Runnable?
-public class ClientHandler extends Thread {
+public class ClientHandler implements Runnable {
     private Socket clientSocket;
     private int flag; // use this flag to determine which protocol to use
     private ArrayList<Client> clientState;
+    private Thread thread;
 
     public ClientHandler(Socket socket) {
         this.clientSocket = socket;
@@ -23,6 +22,13 @@ public class ClientHandler extends Thread {
         this.clientSocket = socket;
         this.flag = flag;
         this.clientState = clientState;
+    }
+
+    public void start() {
+        if (thread == null) {
+            thread = new Thread(this);
+            thread.start();
+        }
     }
 
     @Override
